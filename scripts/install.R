@@ -39,11 +39,6 @@ setup(install.packages, c(
   "reshape",
   "tidyr",
 
-  # for classifying
-  "caret",
-  "doParallel",
-  "e1071",
-
   # for Bioconductor packages
   "BiocManager"
 ))

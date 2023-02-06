@@ -23,16 +23,36 @@ Install dependencies:\
 
 ### Process a single file
 For a non-input control file that does not have CNVs (simplest case):
-`./scripts/run_pipeline.sh -f <bam_filename> --is_input_control FALSE --params_output params.txt --pbs_output pbs.bed --cnv_rescale_success_output cnv_rescale.txt --bypass_cnv_rescaling_step TRUE`
+`./scripts/run_pipeline.sh \
+-f <bam_filename> \
+--is_input_control FALSE \
+--params_output params.txt \
+--pbs_output pbs.bed \
+--cnv_rescale_success_output cnv_rescale.txt \
+--bypass_cnv_rescaling_step TRUE`
 
 For a file that has suspected CNVs:
 1. Process input control file to create the `cnv_ratios.txt`:
-`./scripts/run_pipeline.sh -f <bam_filename> --is_input_control TRUE --params_output params_input_control.txt --pbs_output pbs_input_control.bed --cnv_rescale_success_output cnv_rescale_input_control.txt --bypass_cnv_rescaling_step FALSE --cnv_ratios_filename cnv_ratios.txt`
+`./scripts/run_pipeline.sh \
+-f <bam_filename> \
+--is_input_control TRUE \
+--params_output params_input_control.txt \
+--pbs_output pbs_input_control.bed \
+--cnv_rescale_success_output cnv_rescale_input_control.txt \
+--bypass_cnv_rescaling_step FALSE \
+--cnv_ratios_filename cnv_ratios.txt`
 
 _Note that if the fourth column in `cnv_ratios.txt` is all `1`, then no CNVs were detected in the input control._
 
 2. Process an epitope file, using `cnv_ratios.txt` as the file for rescaling:
-`./scripts/run_pipeline.sh -f <bam_filename> --is_input_control FALSE --params_output params.txt --pbs_output pbs.bed --cnv_rescale_success_output cnv_rescale.txt --bypass_cnv_rescaling_step FALSE --cnv_ratios_filename cnv_ratios.txt`
+`./scripts/run_pipeline.sh \
+-f <bam_filename> \
+--is_input_control FALSE \
+--params_output params.txt \
+--pbs_output pbs.bed \
+--cnv_rescale_success_output cnv_rescale.txt \
+--bypass_cnv_rescaling_step FALSE \
+--cnv_ratios_filename cnv_ratios.txt`
 
 
 ## Producing binned files

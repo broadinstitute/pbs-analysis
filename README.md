@@ -19,7 +19,7 @@ Clone repo:
 
 Install dependencies:\
 `Rscript ./scripts/install.R`\
-`conda install -c bioconda samtools=1.11 ucsc-wigtobigwig=357 ucsc-bigwigaverageoverbed=366 igvtools=2.14.1\`
+`conda install -c bioconda samtools=1.11 ucsc-wigtobigwig=357 ucsc-bigwigaverageoverbed=366 igvtools=2.14.1`
 
 ### Process a single file
 For a non-input control file that does not have CNVs (simplest case):

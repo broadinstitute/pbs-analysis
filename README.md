@@ -44,7 +44,7 @@ Flags:\
 `-w` number of base pairs in each bin [default=5000]\
 `-g` genome assembly. Options are mm9 mm10 hg18 hg19 hg38. [default=hg19]\
 `-n` output filename prefix. [default=output]\
-`-s` output filename suffix. [default=binned]\
+`-s` output filename suffix. [default=binned]
 
 ## Rescaling binned files
 `/scripts/rescaling/SubmitRescaleBinnedFiles.R` adjusts values in each bin to account for the fact that IGVtools count excludes reads with minMapQuality < 1 using mappability scores for each 5 kB region based on the alignability of that region.  Alignability is a function of the uniqueness of the sequence, as well as the genome build and the read length (longer reads are more alignable).  Bins with lower alignability will have fewer uniquely aligned reads assigned to them; the rescaling step adjusts the counts accordingly.\
@@ -55,7 +55,7 @@ Flags:\
 `--bam_filename` full path for BAM file to be binned. Reads need to be sorted already, or a .bai file needs to exist in the same directory.\
 `--binned_bed_filename` filename output from binning step\
 `--genome` genome assembly. Options are mm9 mm10 hg18 hg19 hg38. [default=hg19]\
-`--save_filename` where to save file. [default=binned_bed_basename_map_rescaled.bed]\
+`--save_filename` where to save file. [default=binned_bed_basename_map_rescaled.bed]
 
 ## Correcting bin counts for copy number variations (CNVs)
 `./scripts/cnvRescaling/SubmitCNVRescale.R` outputs a bed file of bins that have been rescaled based on copy number variations, discussed below.  If the file is an input control, then the script will also produce a `cnv_ratios_filename`, which can be used to rescale epitope tracks with the same biosample.
@@ -70,7 +70,7 @@ Flags:\
 `--euploid_reference_filename` required for calculating the CNV ratios for an input control; can be any euploid track with matching bin size and genome assembly to the input control being analyzed; for 5 kB bins and hg19, a file exists in the references folder and a filename need not be provided (default = NULL)\
 `--meta_bin_size` default = 50\
 `--n_windows default` = 10\
-`--save_cnv_rescale_filename` default = NULL\
+`--save_cnv_rescale_filename` default = NULL
 
 ## Estimating the background distribution
 `./scripts/fitting/SubmitFitDistributionWithCVM.R` outputs the parameters of the background gamma distribution of bin counts.  The output `params.txt` file is used in calculating PBS in the subsequent steps.  

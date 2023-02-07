@@ -58,7 +58,7 @@ Flags:\
 `--save_filename` where to save file. [default=binned_bed_basename_map_rescaled.bed]
 
 ## Correcting bin counts for copy number variations (CNVs)
-`./scripts/cnvRescaling/SubmitCNVRescale.R` outputs a bed file of bins that have been rescaled based on copy number variations, discussed below.  If the file is an input control, then the script will also produce a `cnv_ratios_filename`, which can be used to rescale epitope tracks with the same biosample.
+`./scripts/cnvRescaling/SubmitCNVRescale.R` outputs a bed file of bins that have been rescaled based on copy number variations, discussed below.  If the file is an input control, then the script will also produce a file named by `cnv_ratios_filename`, which can be used to rescale epitope tracks with the same biosample.\
 A CNV, or copy number variation, describes a genetic event in which the number of copies of a region is either greater or less than two.  CNVs must be considered, for example, to avoid falsely identifying a region as enriched for a histone mark when the reason for the greater signal is that the sample has twice the amount of chromatin due to a chromosomal arm being replicated.\
 CNVs can only be accurately detected in input control (whole cell extract) tracks originating from the same biosample as an epitope track (same tissue type is not sufficient).  Therefore, certain technologies such as ATAC-seq, are not suitable for this step.
 

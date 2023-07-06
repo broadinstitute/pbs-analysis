@@ -1,4 +1,4 @@
-ARG R_VERSION=3.6.3
+ARG R_VERSION=4.0.5
 
 ### BigWig tools
 

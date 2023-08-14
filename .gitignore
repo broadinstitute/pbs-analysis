@@ -1,1 +1,4 @@
 tools/
+pbsR/test_data/
+.DS_Store
+.Rproj.user

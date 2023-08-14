@@ -1,5 +1,5 @@
 # pbs-analysis
-This repository contains a pipelne for binning, estimating the background distribution, and calculating the probability of being signal for ChIP-seq and related datatypes.  
+This repository contains a pipeline for binning, estimating the background distribution, and calculating the probability of being signal for ChIP-seq and related datatypes.  
 
 ### Overall inputs:
 - BAM file

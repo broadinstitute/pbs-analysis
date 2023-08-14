@@ -1,0 +1,11 @@
+Package: pbsR
+Title: Estimate the background distribution and calculate the probability of being signal (PBS) for ChIP-seq and related datatypes
+Version: 0.0.0.9000
+Authors@R: 
+    person("Siddarth", "Wekhande", , "swekhand@broadinstitute.org", role = c("aut", "cre"),
+           comment = c(ORCID = "0009-0008-7539-8718"))
+Description: An R implementation of the PBS method. This method fits binned counts to a background gamma distribution with estimated parameters to determine if a bin contains signal or noise. 
+License: use_mit_license()
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3

@@ -1,6 +1,5 @@
 #' @importFrom ggplot2 ggplot aes geom_histogram geom_line ggtitle theme_bw scale_x_continuous after_stat
 #' @importFrom rlang .data
-#' @export
 getMultiplotHistograms <- function(max_dens, beta, k, lambda, working_df, bin_width) {
   sim_df <- data.frame(
     x = seq(0, max_dens, length.out = 500),

@@ -9,7 +9,7 @@ getPBS <- function(pbs_obj) {
 
 #' @export
 plotPBS <- function(pbs_obj) {
-  if ("pbs_plt" %in% names(pbs_obj)) {
+  if ("pbs_plot" %in% names(pbs_obj)) {
     print(pbs_obj$pbs_plt)
   } else {
     plotPBS(pbs_obj$pbs_obj)

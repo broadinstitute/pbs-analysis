@@ -13,6 +13,9 @@ getProbabilityBeingSignal <- function(bin_df, params_df,
   p_values <- pgamma(q = working_df$counts, shape = params_df$k, rate = params_df$beta, lower.tail = FALSE)
   ratio <- mean(p_values > 0.5)
   lambda <- 2 * ratio
+  
+  print(paste0("########## Assigning PBS score to each bin #################"))
+  
   # calculate density for background
   fitted_density_df <- data.frame(x = APP_density$x, y = dgamma(x = APP_density$x, shape = k, rate = beta))
   empirical_density_df$pbs <- (empirical_density_df$y - lambda * fitted_density_df$y) / empirical_density_df$y

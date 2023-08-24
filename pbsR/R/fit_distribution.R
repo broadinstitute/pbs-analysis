@@ -121,7 +121,7 @@ getDistributionParameters <- function(working_df, lambda_range = seq(from = 0.4,
     lambda_range = lambda_range
   )
   
-  print(paste0("########## Testing  ", nrow(params_all)," parameters #################"))
+  print(paste0("########## Testing  ", nrow(params_all)," parameters for initial distribution values #################"))
   
   # set max and min vals for weight at far limit of distribution
   if (!fix_weight) {
@@ -169,6 +169,9 @@ getDistributionParametersWithOptim <- function(working_df, lambda_range = seq(0.
   if (!fix_weight) {
     weight_value <- 0.99 * max(working_df$counts)
   }
+  
+  print(paste0("########## Fitting distribution #################"))
+  
   # use optim to calculate parameters
   optim_params <- stats::optim(
     par = c(beta_init, k_init, lambda_init),

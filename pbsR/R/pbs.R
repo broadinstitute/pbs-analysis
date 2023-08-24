@@ -6,7 +6,6 @@ PBS <- function(bin_df) {
     colnames(bin_df) <- c("chr", "start", "end", "counts")
   }
   params_df <- pbsR:::getDistributionParametersWithOptim(bin_df)
-  pbsR::runCVM(bin_df, params_df)
   return(pbsR:::getProbabilityBeingSignal(bin_df, params_df, return_plt = TRUE))
   # pbs_obj = pbsR:::getProbabilityBeingSignal(bin_df, params_df, return_plt = TRUE)
   # return(list("bin_df" = pbs_obj$bin_df, "pbs_plt" = pbs_obj$plt1))

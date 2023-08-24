@@ -79,11 +79,17 @@ pgamma.null <- function(q, params_df, weight_value) {
 
 # try calculating cost using Cramer Von Mises
 getCVMDistance <- function(working_df, params_df, weight_value) {
-  if (!"counts" %in% colnames(working_df)) {
-    names(working_df) <- c("Chr", "StartIdx", "counts")
-  }
   cvm_stat <- cvm.test2(x = working_df$counts, null = "pgamma.null", "params_df" = params_df, "weight_value" = weight_value)
   return(cvm_stat$statistic)
+}
+
+# run Cramer Von Mises
+#' @importFrom magrittr %>%
+runCVM <- function(working_df, params_df) {
+  working_df = working_df %>% dplyr::filter(counts > 0)
+  weight_value = 0.99*max(working_df$counts)
+  cvm_stat <- cvm.test2(x = working_df$counts, null = "pgamma.null", "params_df" = params_df, "weight_value" = weight_value)
+  print(c(cvm_stat$statistic, cvm_stat$p.value))
 }
 
 #' @export
@@ -91,7 +97,9 @@ getCVMDistance <- function(working_df, params_df, weight_value) {
 getDistributionParameters <- function(working_df, lambda_range = seq(from = 0.4, to = 0.8, by = 0.05),
                                       fix_weight = TRUE, weight_value = 500, use_log = FALSE, length_out = 100,
                                       max_range_multiple = 300, plot_data = FALSE) {
+  
   working_df <- working_df %>% dplyr::filter(counts > 0)
+  
   if (use_log) {
     working_df$log_count <- log(working_df$counts)
     working_df$counts <- working_df$log_count
@@ -101,30 +109,44 @@ getDistributionParameters <- function(working_df, lambda_range = seq(from = 0.4,
     bin_width <- 10
     max_dens <- 500
   }
+  
   mean_init <- mean(working_df$counts)
   var_init <- var(working_df$counts)
   beta_init <- mean_init / var_init
   k_init <- mean_init * beta_init
+  
   params_all <- getParameterCombinations(
     beta_range = seq(beta_init, max_range_multiple * beta_init, length.out = length_out),
     k_range = seq(k_init, max_range_multiple * k_init, length.out = length_out),
     lambda_range = lambda_range
   )
-  # print("########## Distribution Parameters to test #################")
-  # print(params_all)
+  
+  print(paste0("########## Testing  ", nrow(params_all)," parameters #################"))
+  
   # set max and min vals for weight at far limit of distribution
   if (!fix_weight) {
     weight_value <- 0.99 * max(working_df$counts)
   }
-  cvm_stat_list <- plyr::ddply(.data = params_all, .variables = "params_num", .fun = getCVMDistance, "working_df" = working_df, "weight_value" = weight_value)
+  
+  #run CVM to find cost at each set of parameters
+  cvm_stat_list <- plyr::ddply(.data = params_all, 
+                               .variables = "params_num", 
+                               .fun = getCVMDistance, 
+                               "working_df" = working_df, 
+                               "weight_value" = weight_value)
+  
   # make a heat map of cvm_stat_list
   cvm_stat_list <- dplyr::inner_join(x = cvm_stat_list, y = params_all, by = "params_num")
   if (plot_data) {
-    pbsR:::plot_cvm_heatmap(cvm_stat_list)
+    print(pbsR:::plotCVMHeatmap(cvm_stat_list))
   }
-  # what's the parameter value at the minimum cost?
+  
+  #print("########## Distribution Parameters tested #################")
+  #print(cvm_stat_list)
+  
+  # retrieve parameters at minimum cost
   optim_params <- params_all[which.min(cvm_stat_list$omega2), ]
-  optim_params$Name <- working_df$Name[1]
+  #optim_params$Name <- working_df$Name[1]
   return(optim_params)
 }
 
@@ -154,10 +176,11 @@ getDistributionParametersWithOptim <- function(working_df, lambda_range = seq(0.
       params_df <- data.frame(beta = par[1], k = par[2], lambda = par[3])
       getCVMDistance(
         params_df = params_df,
-        weight_value = weight_value, working_df = working_df
+        weight_value = weight_value, 
+        working_df = working_df
       )
     },
-    method = "L-BFGS-B", lower = c(1e-5, 1e-5, 1e-5), upper = c(Inf, Inf, 0.96)
+    method = "L-BFGS-B", lower = c(1e-5, 1e-5, 1e-5), upper = c(Inf, Inf, 0.99)
   )
   # calculate lambda based on  p values
   lambda <- 2 * mean(stats::pgamma(

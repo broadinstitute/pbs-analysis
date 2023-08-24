@@ -41,7 +41,7 @@ getProbabilityBeingSignal <- function(bin_df, params_df,
     print(plt1)
   }
   if (return_plt) {
-    return(list("bin_df" = bin_df, "pbs_plt" = plt1))
+    return(list("bin_df" = bin_df, "pbs_plot" = plt1, "beta" = beta, "k" = k, "lambda" = lambda))
   } else {
     return(bin_df)
   }

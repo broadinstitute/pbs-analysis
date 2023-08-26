@@ -42,3 +42,35 @@ plotFittedDistribution <- function(working_df, empirical_density_df, fitted_dens
     )
   return(p)
 }
+
+#find areas under curve between empirical and fitted curves, to the left and right of theta.
+#' @importFrom magrittr %>%
+#' @importFrom ggplot2 ggplot aes geom_line geom_vline labs 
+#' @importFrom rlang .data
+plotAUC <- function(working_df, params_df, xlim = 20, theta = 0.5) { 
+  
+  densityPts <- density(working_df$counts, n = 1024, to = xlim)
+  
+  fittedPts <- dgamma(x = densityPts$x, shape = params_df$k, rate = params_df$beta)
+  fittedPts <- as.data.frame(fittedPts)
+  names(fittedPts) <- c("yFitted")
+  
+  lambda <- params_df$lambda
+  
+  difference_df <- data.frame(xValues = densityPts$x, yEmpirical = densityPts$y, yFitted = lambda*fittedPts)
+  areas <- data.frame(LH = double(1), RH = double(1))
+  
+  #Right-Hand Area
+  filtered_difference <- difference_df %>% dplyr::filter(xValues > quantile(working_df$counts, theta) ) %>% dplyr::filter(yEmpirical < yFitted)
+  filtered_difference$difference <- (filtered_difference$yFitted - filtered_difference$yEmpirical)
+  rhArea <- sum(filtered_difference$difference)
+  
+  #Left-Hand Area
+  filtered_difference <- difference_df %>% dplyr::filter(xValues < quantile(working_df$counts, theta) )
+  filtered_difference$difference <- abs(filtered_difference$yFitted - filtered_difference$yEmpirical)
+  lhArea <- sum(filtered_difference$difference)
+  
+  diffPlot <- ggplot(data = difference_df, aes(x = xValues, y = yEmpirical, col = "Empirical")) + geom_line() + geom_line(data = difference_df, aes(y = yFitted, col = "Fitted"))
+  p = diffPlot + geom_vline(xintercept = quantile(working_df$counts, theta), linetype = "dotted") + labs(x = "Counts", y = "Density")
+  return(p)
+}

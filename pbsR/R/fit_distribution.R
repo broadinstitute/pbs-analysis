@@ -1,24 +1,42 @@
+#' Get Distribution Parameters
+#'
+#' This function takes in a dataframe with atleast one column named counts (typically counts in genomics bins).
+#' It will retrieve some initial distribution parameters based on the count data, and fine-tune the parameters by fitting
+#' parameters to the pgamma.null distribution until convergence (low CvM statistic).
+#'
+#' @param working_df dataframe with one column counts
+#' @param theta estimate of noise (default 0.5)
+#' @param lambda_range range of lambda values to test
+#' @param param_search_length number of parameters to generate, per parameter
+#' @param fix_weight if true, fix_weight value to be 0.99 of max(working_df$counts), else set to weight_value=500
+#' @param weight_value fix tail end of distribution
+#' @param max_dens x-axis cut-off on density plot
 #' @export
 #' @importFrom magrittr %>%
-getDistributionParametersWithOptim <- function(working_df, 
+getDistributionParametersWithOptim <- function(working_df,
                                                theta = 0.5,
-                                               lambda_range = seq(0.6, 0.9, by = 0.1), 
-                                               length_out = 3,
-                                               fix_weight = TRUE, 
-                                               weight_value = 500, 
-                                               plot_data = FALSE, 
-                                               plot_terra = FALSE,
-                                               bin_width = 0.05, 
+                                               lambda_range = seq(0.5, 1.0, by = 0.1),
+                                               param_search_length = 3,
+                                               fix_weight = TRUE,
+                                               weight_value = 500,
                                                max_dens = 20) {
-  
-  counts_col <- grepl(pattern = "count", x = names(working_df), ignore.case = TRUE)
+  counts_col <-
+    grepl(pattern = "count",
+          x = names(working_df),
+          ignore.case = TRUE)
   if (sum(counts_col) != 1) {
     stop('Working_df must have exactly one column with a name similar to "counts".')
   }
   names(working_df)[counts_col] <- "counts"
   working_df <- working_df %>% dplyr::filter(counts > 0)
   
-  params_init <- getInitialDistributionParameters(working_df = working_df, lambda_range = lambda_range, length_out = length_out, theta = theta)
+  params_init <-
+    getInitialDistributionParameters(
+      working_df = working_df,
+      lambda_range = lambda_range,
+      param_search_length = param_search_length,
+      theta = theta
+    )
   
   # set max and min vals for weight at far limit of distribution
   beta_init <- params_init$beta
@@ -35,43 +53,74 @@ getDistributionParametersWithOptim <- function(working_df,
   optim_params <- stats::optim(
     par = c(beta_init, k_init, lambda_init),
     fn = function(par) {
-      params_df <- data.frame(beta = par[1], k = par[2], lambda = par[3])
+      params_df <- data.frame(beta = par[1],
+                              k = par[2],
+                              lambda = par[3])
       getCVMDistance(
         params_df = params_df,
-        weight_value = weight_value, 
-        working_df = working_df, 
-        theta = theta 
+        weight_value = weight_value,
+        working_df = working_df,
+        theta = theta
       )
     },
-    method = "L-BFGS-B", lower = c(1e-5, 1e-5, 1e-5), upper = c(Inf, Inf, 0.99)
+    method = "L-BFGS-B",
+    lower = c(1e-5, 1e-5, 1e-5),
+    upper = c(Inf, Inf, 0.99)
   )
-
-  # calculate lambda based on ratio between left and right sides of curve (i.e. what fraction of points lie below 0.5 vs above), just on the gamma distribution. 
   
-  p_values <- pgamma(q = working_df$counts, rate = optim_params$par[1], shape = optim_params$par[2], lower.tail = FALSE)
-  ratio <- mean(p_values > (1-theta))
+  # calculate lambda based on ratio between left and right sides of curve (i.e. what fraction of points lie below 0.5 vs above), just on the gamma distribution.
+  
+  p_values <-
+    pgamma(
+      q = working_df$counts,
+      rate = optim_params$par[1],
+      shape = optim_params$par[2],
+      lower.tail = FALSE
+    )
+  ratio <- mean(p_values > (1 - theta))
   lambda <-  ratio / theta
   
-  params_df <- data.frame(beta = optim_params$par[1], k = optim_params$par[2], lambda = lambda)
+  params_df <-
+    data.frame(beta = optim_params$par[1],
+               k = optim_params$par[2],
+               lambda = lambda)
   
   # get fit quality metric
-  fit_quality <- findAreas(working_df = working_df, params_df = params_df, xlim = max_dens, theta = theta)
+  fit_quality <-
+    findAreas(
+      working_df = working_df,
+      params_df = params_df,
+      xlim = max_dens,
+      theta = theta
+    )
   params_df$RH_area <- fit_quality$RH
   return(params_df)
 }
 
+#' Get Initial Distribution Parameters
+#'
+#' This function takes in a dataframe with atleast one column named counts (typically counts in genomics bins).
+#' It will generate some initial values of lambda, beta and k based on the minimum CvM statistic returned by testing a
+#' coarse grid of parameters.
+#'
+#' @param working_df dataframe with one column counts
+#' @param theta estimate of noise (default 0.5)
+#' @param lambda_range range of lambda values to test
+#' @param param_search_length number of parameters to generate, per parameter
+#' @param fix_weight if true, fix_weight value to be 0.99 of max(working_df$counts), else set to weight_value=500
+#' @param weight_value fix tail end of distribution
+#' @param max_dens x-axis cut-off on density plot
 #' @export
 #' @importFrom magrittr %>%
-getInitialDistributionParameters <- function(working_df, 
-                                      theta = 0.5,
-                                      lambda_range = seq(from = 0.4, to = 0.8, by = 0.05),
-                                      fix_weight = TRUE,
-                                      weight_value = 500, 
-                                      use_log = FALSE, 
-                                      length_out = 100,
-                                      max_range_multiple = 300, 
-                                      plot_data = FALSE) {
-  
+getInitialDistributionParameters <- function(working_df,
+                                             theta = 0.5,
+                                             lambda_range = seq(from = 0.4, to = 0.8, by = 0.05),
+                                             fix_weight = TRUE,
+                                             weight_value = 500,
+                                             use_log = FALSE,
+                                             param_search_length = 100,
+                                             max_range_multiple = 300,
+                                             plot_data = FALSE) {
   working_df <- working_df %>% dplyr::filter(counts > 0)
   
   if (use_log) {
@@ -90,119 +139,161 @@ getInitialDistributionParameters <- function(working_df,
   k_init <- mean_init * beta_init
   
   params_all <- getParameterCombinations(
-    beta_range = seq(beta_init, max_range_multiple * beta_init, length.out = length_out),
-    k_range = seq(k_init, max_range_multiple * k_init, length.out = length_out),
+    beta_range = seq(beta_init, max_range_multiple * beta_init, length.out = param_search_length),
+    k_range = seq(k_init, max_range_multiple * k_init, length.out = param_search_length),
     lambda_range = lambda_range
   )
   
-  print(paste0("########## Testing  ", nrow(params_all)," parameters for initial distribution values #################"))
+  print(
+    paste0(
+      "########## Testing  ",
+      nrow(params_all),
+      " parameters for initial distribution values #################"
+    )
+  )
   
   # set max and min vals for weight at far limit of distribution
   if (!fix_weight) {
     weight_value <- 0.99 * max(working_df$counts)
   }
   
-  #run CVM to find cost at each set of parameters
-  cvm_stat_list <- plyr::ddply(.data = params_all, 
-                               .variables = "params_num", 
-                               .fun = getCVMDistance, 
-                               "working_df" = working_df, 
-                               "weight_value" = weight_value,
-                               "theta" = theta)
+  #run CVM to find cost at each set of parameters - possibly remove plyr
+  cvm_stat_df <- plyr::ddply(
+    .data = params_all,
+    .variables = "params_num",
+    .fun = getCVMDistance,
+    "working_df" = working_df,
+    "weight_value" = weight_value,
+    "theta" = theta
+  )
   
+  cmv_stat_list = foreach::foreach(i = 1:nrow(params_all), .combine = 'c') %do%
+    getCVMDistance(params_df = params_all[i,],  working_df=working_df, weight_value=weight_value, theta=theta)
+  
+  params_all$omega2 = cmv_stat_list
+  
+  #legacy
+  #cvm_stat_df <-
+    #merge(x = cvm_stat_df, y = params_all, by = "params_num")
+
   # make a heat map of cvm_stat_list
-  cvm_stat_list <- dplyr::inner_join(x = cvm_stat_list, y = params_all, by = "params_num")
   if (plot_data) {
-    print(pbsR:::plotCVMHeatmap(cvm_stat_list))
+    print(pbsR:::plotCVMHeatmap(params_all))
   }
-
+  
   # retrieve parameters at minimum cost
-  optim_params <- params_all[which.min(cvm_stat_list$omega2), ]
-  return(optim_params)
+  params_init <- params_all[which.min(params_all$omega2), ]
+  return(params_init)
 }
 
-getParameterCombinations <- function(beta_range = c(0.5, 1), k_range = c(18, 25), lambda_range = c(0.6, 0.9)) {
-  params_all <- expand.grid(beta = beta_range, k = k_range, lambda = lambda_range)
-  params_all$params_num <- 1:nrow(params_all)
-  return(params_all)
-}
+getParameterCombinations <-
+  function(beta_range = c(0.5, 1),
+           k_range = c(18, 25),
+           lambda_range = c(0.6, 0.9)) {
+    params_all <-
+      expand.grid(beta = beta_range, k = k_range, lambda = lambda_range)
+    params_all$params_num <- 1:nrow(params_all)
+    return(params_all)
+  }
 
 # try calculating cost using Cramer Von Mises
-getCVMDistance <- function(working_df, params_df, weight_value, theta = 0.5) {
-  cvm_stat <- cvm.test2(x = working_df$counts, null = "pgamma.null", "params_df" = params_df, "weight_value" = weight_value, theta = theta)
-  return(cvm_stat$statistic)
-}
+getCVMDistance <-
+  function(working_df,
+           params_df,
+           weight_value,
+           theta = 0.5) {
+    cvm_stat <-
+      cvm.test2(
+        x = working_df$counts,
+        null = "pgamma.null",
+        "params_df" = params_df,
+        "weight_value" = weight_value,
+        theta = theta
+      )
+    return(cvm_stat$statistic)
+  }
 
-cvm.test2 <- function(x, null = "punif", theta = 0.5, ..., nullname) {
-  xname <- deparse(substitute(x))
-  nulltext <- deparse(substitute(null))
-  if (is.character(null)) nulltext <- null
-  if (missing(nullname) || is.null(nullname)) {
-    reco <- goftest::recogniseCdf(nulltext)
-    nullname <- if (!is.null(reco)) {
-      reco
+cvm.test2 <-
+  function(x,
+           null = "punif",
+           theta = 0.5,
+           ...,
+           nullname) {
+    xname <- deparse(substitute(x))
+    nulltext <- deparse(substitute(null))
+    if (is.character(null))
+      nulltext <- null
+    if (missing(nullname) || is.null(nullname)) {
+      reco <- goftest::recogniseCdf(nulltext)
+      nullname <- if (!is.null(reco)) {
+        reco
+      } else {
+        paste("distribution", sQuote(nulltext))
+      }
+    }
+    stopifnot(is.numeric(x))
+    x <- as.vector(x)
+    n <- length(x)
+    F0 <- if (is.function(null)) {
+      null
+    } else if (is.character(null)) {
+      get(null, mode = "function")
     } else {
-      paste("distribution", sQuote(nulltext))
+      stop("Argument 'null' should be a function, or the name of a function")
     }
-  }
-  stopifnot(is.numeric(x))
-  x <- as.vector(x)
-  n <- length(x)
-  F0 <- if (is.function(null)) {
-    null
-  } else if (is.character(null)) {
-    get(null, mode = "function")
-  } else {
-    stop("Argument 'null' should be a function, or the name of a function")
-  }
-  U <- F0(x, ...)
-  if (any(is.nan(U)) | any(is.na(U))) {
-    browser()
-  }
-  if (any(U < 0 | U > 1)) {
-    U[U < 0] <- 0
-  }
-  U[U > 1] <- 1
-  # print('Warning: coercing U to between 0 and 1')
-  #     stop("null distribution function returned values outside [0,1]")
-  U <- sort(U)
-  k <- seq_len(n)
-  omega2 <- 1 / (12 * n) + sum((1 - fBasics::Heaviside(k, theta * n)) * (U - (2 * k - 1) / (2 * n))^2)
-  PVAL <- goftest::pCvM(omega2, n = n, lower.tail = FALSE)
-  names(omega2) <- "omega2"
-  METHOD <- c(
-    "Cramer-von Mises test of goodness-of-fit",
-    paste("Null hypothesis:", nullname)
-  )
-  extras <- list(...)
-  parnames <- intersect(names(extras), names(formals(F0)))
-  if (length(parnames) > 0) {
-    pars <- extras[parnames]
-    pard <- character(0)
-    for (i in seq_along(parnames)) {
-      pard[i] <- paste(parnames[i], "=", paste(pars[[i]], collapse = " "))
+    U <- F0(x, ...)
+    if (any(is.nan(U)) | any(is.na(U))) {
+      browser()
     }
-    pard <- paste(
-      "with",
-      ngettext(length(pard), "parameter", "parameters"),
-      "  ",
-      paste(pard, collapse = ", ")
+    if (any(U < 0 | U > 1)) {
+      U[U < 0] <- 0
+    }
+    U[U > 1] <- 1
+    # print('Warning: coercing U to between 0 and 1')
+    #     stop("null distribution function returned values outside [0,1]")
+    U <- sort(U)
+    k <- seq_len(n)
+    omega2 <-
+      1 / (12 * n) + sum((1 - fBasics::Heaviside(k, theta * n)) * (U - (2 * k - 1) / (2 * n)) ^
+                           2)
+    PVAL <- goftest::pCvM(omega2, n = n, lower.tail = FALSE)
+    names(omega2) <- "omega2"
+    METHOD <- c("Cramer-von Mises test of goodness-of-fit",
+                paste("Null hypothesis:", nullname))
+    extras <- list(...)
+    parnames <- intersect(names(extras), names(formals(F0)))
+    if (length(parnames) > 0) {
+      pars <- extras[parnames]
+      pard <- character(0)
+      for (i in seq_along(parnames)) {
+        pard[i] <- paste(parnames[i], "=", paste(pars[[i]], collapse = " "))
+      }
+      pard <- paste(
+        "with",
+        ngettext(length(pard), "parameter", "parameters"),
+        "  ",
+        paste(pard, collapse = ", ")
+      )
+      METHOD <- c(METHOD, pard)
+    }
+    out <- list(
+      statistic = omega2,
+      p.value = PVAL,
+      method = METHOD,
+      data.name = xname
     )
-    METHOD <- c(METHOD, pard)
+    class(out) <- "htest"
+    return(out)
   }
-  out <- list(
-    statistic = omega2,
-    p.value = PVAL,
-    method = METHOD,
-    data.name = xname
-  )
-  class(out) <- "htest"
-  return(out)
-}
 
 pgamma.null <- function(q, params_df, weight_value) {
-  pgamma_mix <- params_df$lambda * stats::pgamma(q = q, shape = params_df$k, rate = params_df$beta) +
-    (1 - params_df$lambda) * stats::punif(q = q, min = weight_value, max = 1.01 * weight_value)
+  pgamma_mix <-
+    params_df$lambda * stats::pgamma(q = q,
+                                     shape = params_df$k,
+                                     rate = params_df$beta) +
+    (1 - params_df$lambda) * stats::punif(q = q,
+                                          min = weight_value,
+                                          max = 1.01 * weight_value)
   return(pgamma_mix)
 }
 
@@ -210,36 +301,57 @@ pgamma.null <- function(q, params_df, weight_value) {
 #' @importFrom magrittr %>%
 runCVM <- function(working_df, params_df) {
   working_df = working_df %>% dplyr::filter(counts > 0)
-  weight_value = 0.99*max(working_df$counts)
-  cvm_stat <- cvm.test2(x = working_df$counts, null = "pgamma.null", "params_df" = params_df, "weight_value" = weight_value)
+  weight_value = 0.99 * max(working_df$counts)
+  cvm_stat <-
+    cvm.test2(
+      x = working_df$counts,
+      null = "pgamma.null",
+      "params_df" = params_df,
+      "weight_value" = weight_value
+    )
   print(c(cvm_stat$statistic, cvm_stat$p.value))
 }
 
 #find areas under curve between empirical and fitted curves, to the left and right of theta.
 #' @importFrom magrittr %>%
-findAreas <- function(working_df, params_df, xlim = 20, theta = 0.5) { 
-  
-  densityPts <- density(working_df$counts, n = 1024, to = xlim)
-  
-  fittedPts <- dgamma(x = densityPts$x, shape = params_df$k, rate = params_df$beta)
-  fittedPts <- as.data.frame(fittedPts)
-  names(fittedPts) <- c("yFitted")
-  
-  lambda <- params_df$lambda
-  
-  difference_df <- data.frame(xValues = densityPts$x, yEmpirical = densityPts$y, yFitted = lambda*fittedPts)
-  areas <- data.frame(LH = double(1), RH = double(1))
-  
-  #Right-Hand Area
-  filtered_difference <- difference_df %>% dplyr::filter(xValues > quantile(working_df$counts, theta) ) %>% dplyr::filter(yEmpirical < yFitted)
-  filtered_difference$difference <- (filtered_difference$yFitted - filtered_difference$yEmpirical)
-  rhArea <- sum(filtered_difference$difference)
-  
-  #Left-Hand Area
-  filtered_difference <- difference_df %>% dplyr::filter(xValues < quantile(working_df$counts, theta) )
-  filtered_difference$difference <- abs(filtered_difference$yFitted - filtered_difference$yEmpirical)
-  lhArea <- sum(filtered_difference$difference)
-  
-  areas[1,] <- c(lhArea,rhArea)
-  return(areas)
-}
+findAreas <-
+  function(working_df,
+           params_df,
+           xlim = 20,
+           theta = 0.5) {
+    densityPts <- density(working_df$counts, n = 1024, to = xlim)
+    
+    fittedPts <-
+      dgamma(x = densityPts$x,
+             shape = params_df$k,
+             rate = params_df$beta)
+    fittedPts <- as.data.frame(fittedPts)
+    names(fittedPts) <- c("yFitted")
+    
+    lambda <- params_df$lambda
+    
+    difference_df <-
+      data.frame(
+        xValues = densityPts$x,
+        yEmpirical = densityPts$y,
+        yFitted = lambda * fittedPts
+      )
+    areas <- data.frame(LH = double(1), RH = double(1))
+    
+    #Right-Hand Area
+    filtered_difference <-
+      difference_df %>% dplyr::filter(xValues > quantile(working_df$counts, theta)) %>% dplyr::filter(yEmpirical < yFitted)
+    filtered_difference$difference <-
+      (filtered_difference$yFitted - filtered_difference$yEmpirical)
+    rhArea <- sum(filtered_difference$difference)
+    
+    #Left-Hand Area
+    filtered_difference <-
+      difference_df %>% dplyr::filter(xValues < quantile(working_df$counts, theta))
+    filtered_difference$difference <-
+      abs(filtered_difference$yFitted - filtered_difference$yEmpirical)
+    lhArea <- sum(filtered_difference$difference)
+    
+    areas[1,] <- c(lhArea, rhArea)
+    return(areas)
+  }

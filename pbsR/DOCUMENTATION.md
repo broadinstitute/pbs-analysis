@@ -1,5 +1,9 @@
-## To install. Might also need to import margrittr and forEach
-```remotes::install_github("broadinstitute/pbs-analysis/pbsR@sw-pbs")```
+## To install
+```
+remotes::install_github("broadinstitute/pbs-analysis/pbsR@sw-pbs")
+
+#known bug:  might also need to import margrittr and forEach
+```
 
 ## To run the package end-to-end:
 ```

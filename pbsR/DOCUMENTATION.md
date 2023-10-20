@@ -1,6 +1,7 @@
-## To install
+## To install and use
 ```
 remotes::install_github("broadinstitute/pbs-analysis/pbsR@sw-pbs")
+library(pbsR)
 
 #known bug:  might also need to import margrittr and forEach
 ```
@@ -8,7 +9,6 @@ remotes::install_github("broadinstitute/pbs-analysis/pbsR@sw-pbs")
 ## To run the package end-to-end:
 ```
 #pass fit_regions_df if you want to do compartment/region correction
-
 pbs_obj = PBS(bin_df, theta = 0.5, fit_regions_df = NULL)
 ```
 

@@ -21,3 +21,12 @@ params_df = pbsR:::getDistributionParametersWithOptim(working_df = bin_df, theta
 pbs_obj = pbsR:::getProbabilityBeingSignal(bin_df = bin_df, params_df = params_df, theta = theta)
 ```
 
+## To extract results or produce plots
+```
+#get PBS plot
+pbsR::getPBSPlot(pbs_obj)
+
+#write PBS results to file
+pbsR::writePBS(pbs_obj, "path_to_output.tsv")
+
+```

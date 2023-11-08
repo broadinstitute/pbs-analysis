@@ -1,5 +1,7 @@
 #!/usr/bin/env Rscript
 
+options(scipen = 999)
+
 suppressPackageStartupMessages(library(optparse))
 suppressPackageStartupMessages(library(data.table))
 

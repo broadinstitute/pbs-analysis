@@ -1,5 +1,7 @@
 #!/usr/bin/env Rscript
 
+options(scipen = 999)
+
 # Generate reference files of bins
 # Expects genome assembly first, bin width second
 library('rtracklayer')

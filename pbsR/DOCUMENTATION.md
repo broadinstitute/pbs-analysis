@@ -3,9 +3,9 @@
 remotes::install_github("broadinstitute/pbs-analysis/pbsR@sw-pbs")
 library(pbsR)
 
-#known bug:  might also need to import margrittr and forEach
+#known bug:  might also need to import magrittr and forEach
 library(foreach)
-library(margrittr)
+library(magrittr)
 ```
 
 ## To run the package end-to-end:

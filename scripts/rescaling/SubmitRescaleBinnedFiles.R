@@ -1,5 +1,7 @@
 #!/usr/bin/env Rscript
 
+options(scipen = 999)
+
 library(optparse)
 
 # infer script directory from command arguments

@@ -1,5 +1,7 @@
 #!/usr/bin/env Rscript
 
+options(scipen = 999)
+
 suppressPackageStartupMessages(library(data.table))
 suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(ggplot2))

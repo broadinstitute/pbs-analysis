@@ -112,6 +112,7 @@ getDistributionParametersWithOptim <- function(working_df,
 #' @param max_dens x-axis cut-off on density plot
 #' @export
 #' @importFrom magrittr %>%
+#' @importFrom foreach %do%
 getInitialDistributionParameters <- function(working_df,
                                              theta = 0.5,
                                              lambda_range = seq(from = 0.4, to = 0.8, by = 0.05),

@@ -22,7 +22,7 @@ getMappabilityScore(
 
 \item{paired_end}{true/false if dataset is paired/single read}
 
-\item{map_threshold}{bins with rescaled counts lower than this threshold will be filtered out}
+\item{map_threshold}{bins with mappability score lower than this threshold will be filtered out}
 }
 \description{
 Get mappability score for each bin in binned genome, and scale counts according to mappability score

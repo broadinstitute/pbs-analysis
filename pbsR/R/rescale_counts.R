@@ -18,7 +18,7 @@ RescaleXY <- function(counts_df){
 #' @param map_df dataframe with columns chr, start, end, and mappability_score. Look at get("hg19_5000_map_100", asNamespace('pbsR')) to see an example
 RescaleMappability <- function(counts_df, map_df, map_threshold = 0.5){
   counts_df = dplyr::left_join(x = counts_df, y = map_df, by = dplyr::join_by('chr', 'start', 'end')) %>%
-    dplyr::filter(score > map_threshold) %>%
+    dplyr::filter(mappability_score > map_threshold) %>%
     dplyr::mutate(map_rescaled_counts = counts/mappability_score)
   return(counts_df[,c('chr', 'start', 'end', 'counts','map_rescaled_counts')])
 }
@@ -28,7 +28,7 @@ RescaleMappability <- function(counts_df, map_df, map_threshold = 0.5){
 #' @param counts_df  dataframe with columns chr, start, end, and counts. Generally, the input to this function is the output of pbsR::getBinnedCounts
 #' @param bin_size size of bin to split genome into non-overlapping windows. If not supplied, will extract from counts_df 
 #' @param paired_end true/false if dataset is paired/single read
-#' @param map_threshold bins with rescaled counts lower than this threshold will be filtered out 
+#' @param map_threshold bins with mappability score lower than this threshold will be filtered out 
 #' @export
 getMappabilityScore = function(bam_file, counts_df, bin_size = 0, genome, paired_end, map_threshold = 0.5){
   
@@ -57,18 +57,17 @@ getMappabilityScore = function(bam_file, counts_df, bin_size = 0, genome, paired
   
   #retrive precomputed mappability bedgraph file. 
   #TODO: add code to handle cases where bedgraph does not exist
-  map_file = paste(genome, bin_size, "map",ref_read_length, sep = "\t")
-  if(exists(map_file, inherits = FALSE)){
+  map_file = paste(genome, bin_size, "map",ref_read_length, sep = "_")
+  tryCatch( {
     map_df = get(map_file, asNamespace('pbsR'))
-  }
-  else{
-    stop(paste0("Reference map file: ", map_file ," with defined bin size does not exist."))
-  }
+  }, error = function(e) {
+    print(paste0("Reference map file: ", map_file ," with defined bin size does not exist."))
+  })
   
-  counts_df = pbsR::RescaleMappability(counts_df = counts_df, 
+  counts_df = pbsR:::RescaleMappability(counts_df = counts_df, 
                                        map_df = map_df, 
                                        map_threshold = map_threshold)
-  counts_df = pbsR::RescaleXY(counts_df = counts_df)
-  
+  counts_df = pbsR:::RescaleXY(counts_df = counts_df)
+  return(counts_df)
 }
   

@@ -30,6 +30,7 @@ getBinnedCounts = function(bam_file,
   
   #Create SAF format df for featureCounts
   tiled_genome_df = as.data.frame(tiled_genome)
+  tiled_genome_df$GeneID = paste0("Tile_", tiled_genome_df$seqnames,":",tiled_genome_df$start,"-",tiled_genome_df$end)
   tiled_genome_df = tiled_genome_df[,c("GeneID","seqnames","start","end","strand")]
   colnames(tiled_genome_df) = c("GeneID","Chr","Start","End","Strand")
   
@@ -39,9 +40,13 @@ getBinnedCounts = function(bam_file,
                      isPairedEnd = paired_end, 
                      nthreads = threads, 
                      isGTFAnnotationFile = F,
-                     largestOverlap = T)
+                     largestOverlap = T, 
+                     countMultiMappingReads = TRUE)
   
-  return(fc)
+  fc_df = fc$annotation
+  fc_df$counts = fc$counts[,1]
+  colnames(fc_df) = c("peak_id","chr","start","end","strand", "length","counts")
+  return(fc_df)
 }
 
-#TODO: add binnig method for fragment files/ATAC-seq data
+#TODO: add binning method for fragment files/ATAC-seq data

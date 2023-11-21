@@ -1,4 +1,5 @@
-#' Rescale mappability scores in chrX and chrY 
+#' Rescale counts in chrX and chrY 
+#' 
 #' @param counts_df dataframe with columns chr, start, end, and counts. Generally, the input to this function is the output of pbsR::RescaleMappability
 #' 
 RescaleXY <- function(counts_df){
@@ -14,6 +15,7 @@ RescaleXY <- function(counts_df){
 }
 
 #' Rescale counts using mappability scores  
+#' 
 #' @param counts_df dataframe with columns chr, start, end, and counts. Generally, the output of pbsR::getBinnedCounts.
 #' @param map_df dataframe with columns chr, start, end, and mappability_score. Look at get("hg19_5000_map_100", asNamespace('pbsR')) to see an example
 RescaleMappability <- function(counts_df, map_df, map_threshold = 0.5){
@@ -24,6 +26,7 @@ RescaleMappability <- function(counts_df, map_df, map_threshold = 0.5){
 }
 
 #' Get mappability score for each bin in binned genome, and scale counts according to mappability score  
+#' 
 #' @param bam_file filepath to BAM file. BAM file must be indexed
 #' @param counts_df  dataframe with columns chr, start, end, and counts. Generally, the input to this function is the output of pbsR::getBinnedCounts
 #' @param bin_size size of bin to split genome into non-overlapping windows. If not supplied, will extract from counts_df 
@@ -52,7 +55,7 @@ getMappabilityScore = function(bam_file, counts_df, bin_size = 0, genome, paired
   
   #determine binsize if not user-defined
   if(bin_size == 0){
-    bin_size = counts_df$length[1]
+    bin_size = counts_df$end[1] - counts_df$start[1] + 1
   }
   
   #retrive precomputed mappability bedgraph file. 

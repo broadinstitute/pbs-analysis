@@ -1,8 +1,8 @@
 #' Rescale counts in chrX and chrY 
 #' 
-#' @param counts_df dataframe with columns chr, start, end, and counts. Generally, the input to this function is the output of pbsR::RescaleMappability
+#' @param counts_df dataframe with columns chr, start, end, and counts. Generally, the input to this function is the output of pbsR::rescaleMappability
 #' 
-RescaleXY <- function(counts_df){
+rescaleXY <- function(counts_df){
   if(!('chrY' %in% counts_df$chr)){
     return(counts_df)
   }
@@ -18,7 +18,7 @@ RescaleXY <- function(counts_df){
 #' 
 #' @param counts_df dataframe with columns chr, start, end, and counts. Generally, the output of pbsR::getBinnedCounts.
 #' @param map_df dataframe with columns chr, start, end, and mappability_score. Look at get("hg19_5000_map_100", asNamespace('pbsR')) to see an example
-RescaleMappability <- function(counts_df, map_df, map_threshold = 0.5){
+rescaleMappability <- function(counts_df, map_df, map_threshold = 0.5){
   counts_df = dplyr::left_join(x = counts_df, y = map_df, by = dplyr::join_by('chr', 'start', 'end')) %>%
     dplyr::filter(mappability_score > map_threshold) %>%
     dplyr::mutate(map_rescaled_counts = counts/mappability_score)
@@ -67,10 +67,10 @@ getMappabilityScore = function(bam_file, counts_df, bin_size = 0, genome, paired
     print(paste0("Reference map file: ", map_file ," with defined bin size does not exist."))
   })
   
-  counts_df = pbsR:::RescaleMappability(counts_df = counts_df, 
+  counts_df = pbsR:::rescaleMappability(counts_df = counts_df, 
                                        map_df = map_df, 
                                        map_threshold = map_threshold)
-  counts_df = pbsR:::RescaleXY(counts_df = counts_df)
+  counts_df = pbsR:::rescaleXY(counts_df = counts_df)
   return(counts_df)
 }
   

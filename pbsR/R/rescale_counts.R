@@ -35,6 +35,8 @@ rescaleMappability <- function(counts_df, map_df, map_threshold = 0.5){
 #' @export
 getMappabilityScore = function(bam_file, counts_df, bin_size = 0, genome, paired_end, map_threshold = 0.5){
   
+  num_regions = nrow(counts_df)
+  
   #These are the preset available read_lengths for which GEM tracks can be computed [Verify this].   
   if(genome == 'hg38'){
     avail_read_length = c(36, 100)
@@ -71,6 +73,8 @@ getMappabilityScore = function(bam_file, counts_df, bin_size = 0, genome, paired
                                        map_df = map_df, 
                                        map_threshold = map_threshold)
   counts_df = pbsR:::rescaleXY(counts_df = counts_df)
+  
+  print(paste0((num_regions - nrow(counts_df)) , " regions filtered out due to low mappability."))
   return(counts_df)
 }
   

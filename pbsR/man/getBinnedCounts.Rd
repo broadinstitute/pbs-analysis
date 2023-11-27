@@ -4,7 +4,15 @@
 \alias{getBinnedCounts}
 \title{Bin genome given chromosome sizes, and count number of reads within each bin}
 \usage{
-getBinnedCounts(bam_file, chrom_sizes_file, bin_size, paired_end, threads = 4)
+getBinnedCounts(
+  bam_file,
+  chrom_sizes_file,
+  bin_size,
+  paired_end,
+  extension = 125,
+  countMultiMappingReads = T,
+  threads = 4
+)
 }
 \arguments{
 \item{bam_file}{filepath to BAM file. BAM file must be indexed}

@@ -4,12 +4,10 @@
 \alias{rescaleCNV}
 \title{Rescale counts by CNV ratios}
 \usage{
-rescaleCNV(counts_df, counts_column = "map_rescaled_counts", cnv.ratios)
+rescaleCNV(counts_df, cnv.ratios)
 }
 \arguments{
-\item{counts_df}{dataframe with columns chr, start, end, counts and map_rescaled_counts.}
-
-\item{counts_column}{which column of the dataframe to apply cnv rescaling on. Default: map_rescaled_counts.}
+\item{counts_df}{dataframe with columns chr, start, end, counts}
 
 \item{cnv.ratio}{vector of ratios to scale counts by. Generally, this vector is computed in pbsR::getCNVRatioFromControl and stored in 'ratio.s.n' column of output}
 }

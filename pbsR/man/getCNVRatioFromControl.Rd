@@ -4,14 +4,16 @@
 \alias{getCNVRatioFromControl}
 \title{Get CNV ratios from a control sample. Control should be binned and processed similarly to treatment sample}
 \usage{
-getCNVRatioFromControl(counts_df, meta_bin_size = 50, n_windows = 10)
+getCNVRatioFromControl(counts_df, genome, meta_bin_size = 50, n_windows = 10)
 }
 \arguments{
-\item{counts_df}{dataframe with columns chr, start, end, counts and map_rescaled_counts.}
+\item{counts_df}{dataframe with columns chr, start, end, counts}
 
-\item{meta_bin_size}{param passed to pbsR::TestCNVPresence}
+\item{genome}{genome name For example, hg19, hg38, mm10}
 
-\item{n_windows}{param passed to pbsR::TestCNVPresence}
+\item{meta_bin_size}{param passed to pbsR:::testCNVPresence}
+
+\item{n_windows}{param passed to pbsR:::testCNVPresence}
 }
 \description{
 Get CNV ratios from a control sample. Control should be binned and processed similarly to treatment sample

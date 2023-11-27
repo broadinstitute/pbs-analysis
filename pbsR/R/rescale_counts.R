@@ -7,9 +7,10 @@ rescaleXY <- function(counts_df){
     return(counts_df)
   }
   # is this a male sample?
-  if('chrX' %in% counts_df$chr & mean(counts_df$map_rescaled_counts[counts_df$chr == 'chrY'])/mean(counts_df$map_rescaled_counts[counts_df$chr == 'chrX']) > 0.5){
-    counts_df$map_rescaled_counts[counts_df$chr == 'chrX'] <- 2*counts_df$map_rescaled_counts[counts_df$chr == 'chrX']
-    counts_df$map_rescaled_counts[counts_df$chr == 'chrY'] <- 2*counts_df$map_rescaled_counts[counts_df$chr == 'chrY']
+  if('chrX' %in% counts_df$chr & mean(counts_df$counts[counts_df$chr == 'chrY'])/mean(counts_df$counts[counts_df$chr == 'chrX']) > 0.5){
+    print('Applying Mappability rescaling for chrX and chrY')
+    counts_df$counts[counts_df$chr == 'chrX'] <- 2*counts_df$counts[counts_df$chr == 'chrX']
+    counts_df$counts[counts_df$chr == 'chrY'] <- 2*counts_df$counts[counts_df$chr == 'chrY']
   }
   return(counts_df)
 }
@@ -19,10 +20,11 @@ rescaleXY <- function(counts_df){
 #' @param counts_df dataframe with columns chr, start, end, and counts. Generally, the output of pbsR::getBinnedCounts.
 #' @param map_df dataframe with columns chr, start, end, and mappability_score. Look at get("hg19_5000_map_100", asNamespace('pbsR')) to see an example
 rescaleMappability <- function(counts_df, map_df, map_threshold = 0.5){
+  print('Applying Mappability rescaling')
   counts_df = dplyr::left_join(x = counts_df, y = map_df, by = dplyr::join_by('chr', 'start', 'end')) %>%
     dplyr::filter(mappability_score > map_threshold) %>%
-    dplyr::mutate(map_rescaled_counts = counts/mappability_score)
-  return(counts_df[,c('chr', 'start', 'end', 'counts','map_rescaled_counts')])
+    dplyr::mutate(counts = counts/mappability_score)
+  return(counts_df[,c('chr', 'start', 'end', 'counts')])
 }
 
 #' Get mappability score for each bin in binned genome, and scale counts according to mappability score  

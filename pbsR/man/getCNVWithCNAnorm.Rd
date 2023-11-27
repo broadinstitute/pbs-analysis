@@ -4,10 +4,12 @@
 \alias{getCNVWithCNAnorm}
 \title{Calculate CNV ratios}
 \usage{
-getCNVWithCNAnorm(counts_df, reference_k = 15.7, reference_beta = 4.81)
+getCNVWithCNAnorm(counts_df, genome, reference_k = 15.7, reference_beta = 4.81)
 }
 \arguments{
 \item{counts_df}{dataframe with columns chr, start, end, and counts.}
+
+\item{genome}{genome name For example, hg19, hg38, mm10}
 
 \item{reference_k}{TODO: add DOC}
 

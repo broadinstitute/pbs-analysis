@@ -12,6 +12,8 @@ getBinnedCounts = function(bam_file,
                             chrom_sizes_file,
                             bin_size, 
                             paired_end, 
+                            extension = 125,
+                            countMultiMappingReads = T,
                             threads = 4){
   
   chrom_sizes = read.table(chrom_sizes_file, header = FALSE, col.names = c("chromosome", "size"))
@@ -38,10 +40,11 @@ getBinnedCounts = function(bam_file,
   fc = Rsubread::featureCounts(files = bam_file, 
                      annot.ext = tiled_genome_df,
                      isPairedEnd = paired_end, 
+                     readExtension3 = extension, 
                      nthreads = threads, 
                      isGTFAnnotationFile = F,
                      largestOverlap = T, 
-                     countMultiMappingReads = TRUE)
+                     countMultiMappingReads = countMultiMappingReads)
   
   fc_df = fc$annotation
   fc_df$counts = fc$counts[,1]

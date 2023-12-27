@@ -124,7 +124,7 @@ GetCNVWithCNAnorm <- function(bin_size = 5000, saved_gc_filename = NULL, assembl
   }
   covData <- left_join(x = sample_df, y = reference_df, by = c('chr', 'start', 'end'))
   # correct for GC content in bins; GCcontent is in biovizBase; may need to be reloaded?
-  if(!is.null(saved_gc_filename)){
+  if(file.exists(saved_gc_filename)){
     gc_df <- fread(input = saved_gc_filename, col.names = c('chr', 'start', 'end', 'gc'))
   } else{
     print('Calculating GC content...')

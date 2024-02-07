@@ -21,7 +21,6 @@ CNV_RATIOS_FILENAME=NULL
 
 SCRIPTS_DIR=$(dirname "$0")
 REFS_DIR="${SCRIPTS_DIR}/../references"
-GC_CONTENT_FILENAME="${REFS_DIR}/${GENOME}_${BIN_SIZE}_gc.bed"
 
 
 while [ $# -gt 0 ]
@@ -114,6 +113,7 @@ do
     esac
 done
 
+GC_CONTENT_FILENAME="${REFS_DIR}/${GENOME}_${BIN_SIZE}_gc.bed"  
 
 
 # binning
